@@ -1,0 +1,43 @@
+name: Promote All Agents
+on:
+  workflow_dispatch:
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout test repo
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PROD_PUSH_TOKEN }}
+      
+      - name: Clone prod repo
+        uses: actions/checkout@v3
+        with:
+          repository: Chaitanya1130/yolearn-backend
+          path: prod-repo
+          token: ${{ secrets.PROD_PUSH_TOKEN }}
+      
+      - name: Copy all agents from all orch folders
+        run: |
+          # Copy student directory if it exists
+          if [ -d "student" ]; then
+            mkdir -p prod-repo/student
+            rsync -av --prune-empty-dirs --include='*/' --include='agents/**' --exclude='*' student/ prod-repo/student/
+          fi
+          
+          # Explicitly check if teacher directory exists in the current working directory
+          if [ -d "$(pwd)/teacher" ]; then
+            mkdir -p prod-repo/teacher
+            rsync -av --prune-empty-dirs --include='*/' --include='agents/**' --exclude='*' teacher/ prod-repo/teacher/
+          else
+            echo "Teacher directory does not exist, skipping..."
+          fi
+      
+      - name: Commit & Push to prod
+        run: |
+          cd prod-repo
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Promote all agents from test to prod" || echo "Nothing to commit"
+          git push origin main
