@@ -1,6 +1,11 @@
 name: Promote All Agents
+
 on:
-  workflow_dispatch:
+  push:
+    paths:
+      - 'student/orch*/agents/agent*/**'
+      - 'teacher/orch*/agents/agent*/**'
+
 jobs:
   promote:
     runs-on: ubuntu-latest
@@ -24,8 +29,8 @@ jobs:
             mkdir -p prod-repo/student
             rsync -av --prune-empty-dirs --include='*/' --include='agents/**' --exclude='*' student/ prod-repo/student/
           fi
-          
-          # Explicitly check if teacher directory exists in the current working directory
+
+          # Copy teacher directory if it exists
           if [ -d "$(pwd)/teacher" ]; then
             mkdir -p prod-repo/teacher
             rsync -av --prune-empty-dirs --include='*/' --include='agents/**' --exclude='*' teacher/ prod-repo/teacher/
