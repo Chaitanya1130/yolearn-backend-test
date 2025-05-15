@@ -30,26 +30,25 @@ jobs:
           | sort -u >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
 
-        - name: Deploy changed agents to Cloud Run
-        run: |
-          echo "CHANGED_AGENTS=$CHANGED_AGENTS"
-          if [ -z "$CHANGED_AGENTS" ]; then
-            echo "No changed agents to deploy."
-            exit 0
-          fi
-      
-          echo "$CHANGED_AGENTS" | while read agent_path; do
-            [ -z "$agent_path" ] && continue  # skip empty lines
-            agent_name=$(basename "$agent_path")
-            echo "🔄 Deploying $agent_name from $agent_path"
-      
-            gcloud builds submit "$agent_path" \
-              --tag gcr.io/test-project/$agent_name
-      
-            gcloud run deploy $agent_name \
-              --image gcr.io/test-project/$agent_name \
-              --platform managed \
-              --region us-central1 \
-              --allow-unauthenticated
-          done
-      
+    - name: Deploy changed agents to Cloud Run
+      run: |
+        echo "CHANGED_AGENTS=$CHANGED_AGENTS"
+        if [ -z "$CHANGED_AGENTS" ]; then
+          echo "No changed agents to deploy."
+          exit 0
+        fi
+
+        echo "$CHANGED_AGENTS" | while read agent_path; do
+          [ -z "$agent_path" ] && continue  # skip empty lines
+          agent_name=$(basename "$agent_path")
+          echo "🔄 Deploying $agent_name from $agent_path"
+
+          gcloud builds submit "$agent_path" \
+            --tag gcr.io/proj-459908/$agent_name
+
+          gcloud run deploy $agent_name \
+            --image gcr.io/proj-459908/$agent_name \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated
+        done
