@@ -3,7 +3,7 @@ name: Auto Deploy Agents to Cloud Run
 on:
   push:
     paths:
-      - 'student/orch*/agents/agent-*/**'
+      - 'student/orch*/agents/agent*/**'
 
 jobs:
   deploy-agents:
@@ -13,11 +13,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up gcloud
+    - name: Set up Google Cloud SDK
       uses: google-github-actions/setup-gcloud@v1
       with:
         service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
-        project_id: test-project
+        project_id: proj-459908
         export_default_credentials: true
 
     - name: Find changed agents
@@ -25,23 +25,23 @@ jobs:
       run: |
         echo "CHANGED_AGENTS<<EOF" >> $GITHUB_ENV
         git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
-          | grep '^student/orch.*/agents/agent-[^/]*' \
+          | grep '^student/orch.*/agents/agent[^/]*' \
           | cut -d/ -f1-5 \
           | sort -u >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
 
-    - name: Deploy changed agents
+    - name: Deploy changed agents to Cloud Run
       if: env.CHANGED_AGENTS != ''
       run: |
         echo "$CHANGED_AGENTS" | while read agent_path; do
           agent_name=$(basename "$agent_path")
-          echo "🔄 Deploying $agent_name from $agent_path"
-          
+          echo "🚀 Deploying $agent_name from $agent_path..."
+
           gcloud builds submit "$agent_path" \
-            --tag gcr.io/test-project/$agent_name
+            --tag gcr.io/proj-459908/$agent_name
 
           gcloud run deploy $agent_name \
-            --image gcr.io/test-project/$agent_name \
+            --image gcr.io/proj-459908/$agent_name \
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated
