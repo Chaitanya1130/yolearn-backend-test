@@ -1,0 +1,15 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: overwrite-service
+spec:
+  template:
+    spec:
+      containers:
+        - image: gcr.io/overwritetext/overwrite-image
+          env:
+            - name: MONGO_URI
+              value: "mongodb+srv://thinkingcap1130:Chaitanya1130@cluster0.2ogyjhu.mongodb.net/task_database
+db_name=task_database"
+            - name: DB_NAME
+              value: "task_database"
